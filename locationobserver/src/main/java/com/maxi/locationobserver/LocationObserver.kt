@@ -14,6 +14,21 @@ class LocationObserver(
     private val _locationState = MutableStateFlow<LocationState>(LocationState.Unavailable)
     val locationState = _locationState.asStateFlow()
 
+    private val locationCallback = object : LocationCallback {
+        override fun onLocationEnabled() {
+            _locationState.value = LocationState.Available
+        }
+
+        override fun onLocationDisabled() {
+            _locationState.value = LocationState.Unavailable
+        }
+
+        override fun onErrorReceived() {
+            Log.d(TAG, "onErrorReceived: ")
+            _locationState.value = LocationState.Unavailable
+        }
+    }
+
     init {
         init(context)
     }
@@ -24,21 +39,6 @@ class LocationObserver(
     }
 
     private fun registerLocationReceiver() {
-        val locationCallback = object : LocationCallback {
-            override fun onLocationEnabled() {
-                _locationState.value = LocationState.Available
-            }
-
-            override fun onLocationDisabled() {
-                _locationState.value = LocationState.Unavailable
-            }
-
-            override fun onErrorReceived() {
-                Log.d(TAG, "onErrorReceived: ")
-                _locationState.value = LocationState.Unavailable
-            }
-        }
-
         if (!::locationReceiver.isInitialized) {
             locationReceiver = LocationReceiver(context, locationCallback)
             locationReceiver.registerLocationReceiver()
